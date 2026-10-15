@@ -9,9 +9,10 @@ environment:
 # Add regular dependencies here.
 dependencies:
   path: ^1.9.0
-  sqlite3: ^3.7.0
+  # sqlite3: ^3.7.0
   tree_sitter_language_pack: ^1.21.0
   glob: ^2.2.0
+  crypto: ^3.0.0
 
 dev_dependencies:
   lints: ^6.0.0

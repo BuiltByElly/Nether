@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:crypto/crypto.dart';
+import 'package:nether/src/types.dart';
 import 'package:path/path.dart' as p;
 
 import 'gitignore.dart';
@@ -96,55 +96,16 @@ final _testNameLower = RegExp(
 );
 final _testNameCased = RegExp(r'Tests?\.(java|kt|cs|swift)$'); // FooTest.java
 
-// ---------------------------------------------------------------------------
-// The tables below were referenced by the classifier but were not in the
-// excerpt I received, so these are my defaults. Replace them with yours.
-// All names are lowercase because they are compared against lowercased names.
-// ---------------------------------------------------------------------------
+final _generatedName = RegExp(
+  r'\.(g|gen|generated|freezed|gr|mocks|pb\w*|min|designer)\.[^.]+$'
+  r'|_pb2(_grpc)?\.py$'
+  r'|\.lockb?$|\.lock\.json$|-lock\.(json|ya?ml)$|^go\.sum$'
+  r'|\.(js|css)\.map$',
+);
 
-/// Exact file names that are always machine-written.
-const _generatedNames = {
-  'package-lock.json',
-  'yarn.lock',
-  'pnpm-lock.yaml',
-  'pubspec.lock',
-  'poetry.lock',
-  'cargo.lock',
-  'composer.lock',
-  'gemfile.lock',
-  'go.sum',
-};
-
-/// Name endings that mark generated code (committed build_runner output, etc.).
-const _generatedSuffixes = {
-  '.g.dart',
-  '.freezed.dart',
-  '.gr.dart',
-  '.mocks.dart',
-  '.pb.dart',
-  '.pbenum.dart',
-  '.pbjson.dart',
-  '.pbgrpc.dart',
-  '.pb.go',
-  '_pb2.py',
-  '_pb2_grpc.py',
-  '.min.js',
-  '.min.css',
-  '.map',
-};
-
-/// Directories whose contents are generated. Usually already gitignored, but
-/// this still catches them in repos that have no .gitignore.
-const _generatedDirs = {
-  'generated',
-  '__generated__',
-  '.dart_tool',
-  'build',
-  'dist',
-  'node_modules',
-  '__pycache__',
-  'coverage',
-};
+/// Committed folders that are always generated. Build output, node_modules
+/// and the like are left to .gitignore.
+const _generatedDirs = {'generated', '__generated__'};
 
 /// File stems (name without extension) that are documentation.
 const _docNames = {
@@ -182,23 +143,10 @@ const _configNames = {
   'cmakelists.txt',
 };
 
-/// Never walked, never reported, whatever the .gitignore says. Git itself
-/// never lists `.git`, so no .gitignore will ever mention it.
-const _alwaysSkipped = {'.git', '.nether'};
+const _alwaysSkipped = {'.git', '.nether', 'node_modules'};
 
-/// How much of a file is checked for NUL bytes when guessing "binary".
 const _sniffBytes = 8192;
 
-/// Walks a repository and describes every file that .gitignore lets through.
-///
-/// [metadata] returns one entry per file, keyed by its path relative to the
-/// root (always `/`-separated). Each entry holds:
-///   extension, language, size (bytes), mtime (ms since epoch), loc
-///   (non-blank lines), hash (sha256 hex), classification, directory, depth
-///
-/// Every .gitignore is read when the walk reaches its directory and applies to
-/// that subtree. An ignored directory is never entered, so a .gitignore inside
-/// it is never read (same as git).
 class RepoScanner {
   final String rootPath;
 
@@ -208,17 +156,17 @@ class RepoScanner {
 
   /// Pass the result of an earlier run as [previous] to skip unchanged files:
   /// a file whose size and mtime both match its old entry is not read again.
-  Future<Map<String, Map<String, String>>> metadata({
-    Map<String, Map<String, String>>? previous,
+  Future<Map<String, FileMetadata>> metadata({
+    Map<String, FileMetadata>? previous,
   }) async {
     if (!await Directory(_root).exists()) {
       throw ArgumentError.value(rootPath, 'rootPath', 'Not a directory');
     }
-    final result = <String, Map<String, String>>{};
+    final result = <String, FileMetadata>{};
     await _walk(
       Directory(_root),
       IgnoreMatcher.empty,
-      previous ?? const <String, Map<String, String>>{},
+      previous ?? const <String, FileMetadata>{},
       result,
     );
     return result;
@@ -227,8 +175,8 @@ class RepoScanner {
   Future<void> _walk(
     Directory dir,
     IgnoreMatcher inherited,
-    Map<String, Map<String, String>> previous,
-    Map<String, Map<String, String>> result,
+    Map<String, FileMetadata> previous,
+    Map<String, FileMetadata> result,
   ) async {
     final matcher = await _withLocalRules(dir, inherited);
 
@@ -280,21 +228,26 @@ class RepoScanner {
       p.split(p.relative(path, from: _root)).join('/');
 }
 
-Future<Map<String, String>> _describeFile(
+Future<FileMetadata> _describeFile(
   File file,
   String rel,
-  Map<String, String>? previous,
+  FileMetadata? previous,
 ) async {
-  // Stat before reading: if the file changes mid-read, the stored mtime is the
-  // older one, so the next run notices and re-reads it.
   final stat = await file.stat();
-  final size = stat.size.toString();
-  final mtime = stat.modified.millisecondsSinceEpoch.toString();
 
   if (previous != null &&
-      previous['size'] == size &&
-      previous['mtime'] == mtime) {
-    return Map.of(previous);
+      previous.size == stat.size &&
+      previous.mtime == stat.modified.millisecondsSinceEpoch) {
+    return (
+      extension: previous.extension,
+      language: previous.language,
+      size: stat.size,
+      mtime: stat.modified.millisecondsSinceEpoch,
+      loc: previous.loc,
+      classification: previous.classification,
+      directory: previous.directory,
+      depth: previous.depth,
+    );
   }
 
   final name = p.basename(rel);
@@ -305,17 +258,16 @@ Future<Map<String, String>> _describeFile(
   );
   final dir = p.posix.dirname(rel);
 
-  return {
-    'extension': ext,
-    'language': content.binary ? 'binary' : (_languages[ext] ?? 'unknown'),
-    'size': size,
-    'mtime': mtime,
-    'loc': content.loc.toString(),
-    'hash': content.hash,
-    'classification': _classify(rel, name, ext, content.binary),
-    'directory': dir,
-    'depth': (dir == '.' ? 0 : dir.split('/').length).toString(),
-  };
+  return (
+    extension: ext,
+    language: content.binary ? 'binary' : (_languages[ext] ?? 'unknown'),
+    size: stat.size,
+    mtime: stat.modified.millisecondsSinceEpoch,
+    loc: content.loc,
+    classification: _classify(rel, name, ext, content.binary),
+    directory: dir,
+    depth: dir == '.' ? 0 : dir.split('/').length,
+  );
 }
 
 /// Lowercased extension. Dotfiles such as `.gitignore` or `.editorconfig` use
@@ -327,24 +279,20 @@ String _extensionOf(String name) {
 }
 
 /// One streaming pass over the file that produces everything content-based:
-///   * sha256 of the bytes,
 ///   * a NUL byte in the first 8 KB means binary,
 ///   * loc = number of lines with at least one non-whitespace byte (a line
 ///     ends at `\n` or `\r`, so `\r\n` files count correctly).
 /// Known-binary extensions skip the line counting but are still hashed.
-Future<({bool binary, int loc, String hash})> _scanContent(
+Future<({bool binary, int loc})> _scanContent(
   File file, {
   required bool knownBinary,
 }) async {
-  final digest = _DigestSink();
-  final hasher = sha256.startChunkedConversion(digest);
   var binary = knownBinary;
   var loc = 0;
   var lineHasContent = false;
   var offset = 0;
 
   await for (final chunk in file.openRead()) {
-    hasher.add(chunk);
     if (!binary) {
       for (var i = 0; i < chunk.length; i++) {
         final b = chunk[i];
@@ -364,21 +312,9 @@ Future<({bool binary, int loc, String hash})> _scanContent(
     }
     offset += chunk.length;
   }
-  hasher.close();
 
   if (!binary && lineHasContent) loc++;
-  return (binary: binary, loc: binary ? 0 : loc, hash: digest.value.toString());
-}
-
-/// Collects the single digest produced by a chunked hash conversion.
-class _DigestSink implements Sink<Digest> {
-  late Digest value;
-
-  @override
-  void add(Digest data) => value = data;
-
-  @override
-  void close() {}
+  return (binary: binary, loc: binary ? 0 : loc);
 }
 
 extension _DropLast<T> on List<T> {
@@ -396,9 +332,7 @@ String _classify(String rel, String name, String ext, bool binary) {
       .map((s) => s.toLowerCase())
       .toSet();
 
-  if (_generatedNames.contains(lowerName) ||
-      _generatedSuffixes.any(lowerName.endsWith) ||
-      dirs.any(_generatedDirs.contains)) {
+  if (_generatedName.hasMatch(lowerName) || dirs.any(_generatedDirs.contains)) {
     return 'generated';
   }
   if (dirs.any(_testDirs.contains) ||

@@ -162,6 +162,9 @@ class RepoScanner {
     if (!await Directory(_root).exists()) {
       throw ArgumentError.value(rootPath, 'rootPath', 'Not a directory');
     }
+    if (!Directory(p.join(Directory(_root).path, '.git')).existsSync()) {
+      throw ArgumentError("Initialize this project into a git repository.");
+    }
     final result = <String, FileMetadata>{};
     await _walk(
       Directory(_root),

@@ -14,12 +14,12 @@ Map<String, FileMetadata> parseMetadataJSON(String text) {
       j.key: (
         extension: j.value['extension'] as String,
         language: j.value['language'] as String,
-        size: (j.value['size'] as num).toInt(),
-        mtime: (j.value['mtime'] as num).toInt(),
-        loc: (j.value['loc'] as num).toInt(),
+        size: j.value['size'] as int,
+        mtime: j.value['mtime'] as int,
+        loc: j.value['loc'] as int,
         classification: j.value['classification'] as String,
         directory: j.value['directory'] as String,
-        depth: (j.value['depth'] as num).toInt(),
+        depth: j.value['depth'] as int,
       ),
   };
 }
@@ -31,7 +31,9 @@ Future<void> main(List<String> args) async {
   final previous = cache.existsSync()
       ? parseMetadataJSON(cache.readAsStringSync())
       : null;
-  final result = await RepoScanner(root).metadata(previous: previous);
+  final rawResult = await RepoScanner(root).metadata(previous: previous);
+
+  final result = rawResult.map((key, record) => MapEntry(key, record.toMap()));
 
   cache.parent.createSync(recursive: true);
   cache.writeAsStringSync(jsonEncode(result));

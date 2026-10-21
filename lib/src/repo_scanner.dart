@@ -159,6 +159,7 @@ const _alwaysSkipped = {'.git', '.nether', 'node_modules'};
 
 const _sniffBytes = 8192;
 
+//////////////////////
 class RepoScanner {
   final String rootPath;
 
@@ -222,7 +223,7 @@ class RepoScanner {
     }
   }
 
-  /// [inherited] plus this directory's own .gitignore, if it has one.
+  /// [inherited] plus this [dir]'s own .gitignore, if it has one.
   Future<IgnoreMatcher> _withLocalRules(
     Directory dir,
     IgnoreMatcher inherited,
@@ -242,6 +243,8 @@ class RepoScanner {
   String _relative(String path) =>
       p.split(p.relative(path, from: _root)).join('/');
 }
+
+///////////////////////
 
 Future<FileMetadata> _describeFile(
   File file,

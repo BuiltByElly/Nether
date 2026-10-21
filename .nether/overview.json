@@ -1,0 +1,26 @@
+{
+  "generatedAt": "2026-10-21T14:30:40.454661Z",
+  "root": "Nether",
+  "stats": {
+    "files": 16,
+    "loc": 1362,
+    "byClass": {
+      "configuration": { "files": 2, "loc": 29 },
+      "documentation": { "files": 2, "loc": 4 },
+      "source": { "files": 9, "loc": 812 },
+      "generated": { "files": 1, "loc": 501 },
+      "manifest": { "files": 1, "loc": 16 },
+      "test": { "files": 1, "loc": 0 }
+    }
+  },
+  "languages": [{ "name": "Dart", "files": 10, "loc": 812, "share": 1.0 }],
+  "projects": [{ "path": "pubspec.yaml", "ecosystem": "Dart" }],
+  "directories": [
+    { "path": ".", "files": 6, "loc": 550, "role": "configuration" },
+    { "path": "bin", "files": 1, "loc": 8, "role": "source" },
+    { "path": "lib", "files": 8, "loc": 804, "role": "source" },
+    { "path": "test", "files": 1, "loc": 0, "role": "test" }
+  ],
+  "tests": { "dirs": ["test"], "files": 1 },
+  "docs": { "readme": "README.md", "files": ["CHANGELOG.md", "README.md"] }
+}

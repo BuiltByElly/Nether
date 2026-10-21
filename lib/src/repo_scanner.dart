@@ -103,6 +103,18 @@ final _generatedName = RegExp(
   r'|\.(js|css)\.map$',
 );
 
+final _manifestPattern = RegExp(
+  r'(?:^|[/\\])(?:'
+  r'pubspec\.yaml|package\.json|deno\.jsonc?|'
+  r'pyproject\.toml|requirements\.txt|setup\.(?:py|cfg)|Pipfile|'
+  r'pom\.xml|(?:build|settings)\.gradle(?:\.kts)?|build\.sbt|project\.clj|'
+  r'Package\.swift|Podfile|go\.mod|Cargo\.toml|CMakeLists\.txt|meson\.build|'
+  r'Gemfile|composer\.json|mix\.exs|gleam\.toml|stack\.yaml|cabal\.project|'
+  r'Project\.toml|shard\.yml|'
+  r'[^/\\]+\.(?:csproj|fsproj|vbproj|slnx?|cabal|gemspec|podspec)'
+  r')$',
+);
+
 /// Committed folders that are always generated. Build output, node_modules
 /// and the like are left to .gitignore.
 const _generatedDirs = {'generated', '__generated__'};
@@ -327,6 +339,9 @@ extension _DropLast<T> on List<T> {
 String _classify(String rel, String name, String ext, bool binary) {
   if (binary) return 'binary';
 
+  if (_manifestPattern.hasMatch(rel)) {
+    return 'manifest';
+  }
   final lowerName = name.toLowerCase();
   // Parent folders only, so a file named "test" or "docs" isn't mistaken for a folder.
   final dirs = p.posix

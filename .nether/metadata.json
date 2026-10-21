@@ -82,9 +82,9 @@
   "lib/src/repo_scanner.dart": {
     "extension": ".dart",
     "language": "Dart",
-    "size": 9516,
-    "mtime": 1792247635998,
-    "loc": 327,
+    "size": 10091,
+    "mtime": 1792580830606,
+    "loc": 341,
     "classification": "source",
     "directory": "lib/src",
     "depth": 2
@@ -115,7 +115,7 @@
     "size": 358,
     "mtime": 1792086933753,
     "loc": 16,
-    "classification": "configuration",
+    "classification": "manifest",
     "directory": ".",
     "depth": 0
   },

@@ -13,6 +13,9 @@ dependencies:
   tree_sitter_language_pack: ^1.21.0
   glob: ^2.2.0
   crypto: ^3.0.0
+  yaml: ^3.1.4
+  toml: ^0.18.0
+  xml: ^7.1.0
 
 dev_dependencies:
   lints: ^6.0.0

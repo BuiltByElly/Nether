@@ -5,6 +5,7 @@ import 'manifest.dart';
 Map<String, dynamic> buildOverview(
   Map<String, FileMetadata> metadata, {
   required String rootName,
+  Map<String, ManifestDetails> manifests = const {},
 }) {
   var totalLoc = 0;
   var testFiles = 0;
@@ -61,10 +62,18 @@ Map<String, dynamic> buildOverview(
       }
     }
 
-    // projects: one entry per manifest (name/scripts/entry points come
-    // from the manifest reader later)
+    // projects: one entry per manifest, enriched when the reader could
+    // extract details for it.
     if (cls == 'manifest') {
-      projects.add({'path': path, 'ecosystem': manifestEcosystem(path)});
+      final details = manifests[path] ?? ManifestDetails.empty;
+      projects.add({
+        'path': path,
+        'ecosystem': manifestEcosystem(path),
+        if (details.name != null) 'name': details.name,
+        if (details.description != null) 'description': details.description,
+        if (details.scripts.isNotEmpty) 'scripts': details.scripts,
+        if (details.entryPoints.isNotEmpty) 'entryPoints': details.entryPoints,
+      });
     }
   }
 
@@ -91,7 +100,7 @@ Map<String, dynamic> buildOverview(
           'path': dir,
           'files': dirFiles[dir],
           'loc': dirLoc[dir],
-          'role': dominant(dirClasses[dir]!),
+          'role': dir == "." ? "root" : dominant(dirClasses[dir]!),
         },
       )
       .toList();

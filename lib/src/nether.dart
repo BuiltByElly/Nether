@@ -1,30 +1,43 @@
 import 'package:path/path.dart' as p;
 
 import 'manager/nether_manager.dart';
+import 'manifest_reader.dart';
 import 'overview.dart';
-import 'repo_scanner.dart';
+import 'metadata.dart';
 import 'types.dart';
 
 class Nether {
   final String rootPath;
-  final RepoScanner _scanner;
+  final Metadata _metadata;
+  final ManifestReader _manifestReader;
   final NetherManager _manager;
 
   Nether(this.rootPath)
-    : _scanner = RepoScanner(rootPath),
+    : _metadata = Metadata(rootPath),
+      _manifestReader = ManifestReader(rootPath),
       _manager = NetherManager(rootPath);
 
-  Future<Map<String, FileMetadata>> scan() async {
+  ///Returns the metadata of the current project
+  Future<Map<String, FileMetadata>> metadata() async {
     final previous = _manager.readMetadata();
-    final metadata = await _scanner.metadata(previous: previous);
+    final metadata = await _metadata.metadata(previous: previous);
     _manager.writeMetadata(metadata);
     return metadata;
   }
 
   Future<Map<String, dynamic>> overview() async {
-    final metadata = await scan();
+    final repoMetadata = await metadata();
+    final manifests = await _manifestReader.read(
+      repoMetadata.entries
+          .where((entry) => entry.value.classification == 'manifest')
+          .map((entry) => entry.key),
+    );
     final rootName = p.basename(p.normalize(p.absolute(rootPath)));
-    final result = buildOverview(metadata, rootName: rootName);
+    final result = buildOverview(
+      repoMetadata,
+      rootName: rootName,
+      manifests: manifests,
+    );
     _manager.writeOverview(result);
     return result;
   }

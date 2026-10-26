@@ -1,26 +1,36 @@
 {
-  "generatedAt": "2026-10-21T14:30:40.454661Z",
+  "generatedAt": "2026-10-25T10:45:49.666020Z",
   "root": "Nether",
   "stats": {
-    "files": 16,
-    "loc": 1362,
+    "files": 18,
+    "loc": 1790,
     "byClass": {
       "configuration": { "files": 2, "loc": 29 },
-      "documentation": { "files": 2, "loc": 4 },
-      "source": { "files": 9, "loc": 812 },
-      "generated": { "files": 1, "loc": 501 },
-      "manifest": { "files": 1, "loc": 16 },
+      "documentation": { "files": 3, "loc": 80 },
+      "source": { "files": 10, "loc": 1201 },
+      "generated": { "files": 1, "loc": 461 },
+      "manifest": { "files": 1, "loc": 19 },
       "test": { "files": 1, "loc": 0 }
     }
   },
-  "languages": [{ "name": "Dart", "files": 10, "loc": 812, "share": 1.0 }],
-  "projects": [{ "path": "pubspec.yaml", "ecosystem": "Dart" }],
+  "languages": [{ "name": "Dart", "files": 11, "loc": 1201, "share": 1.0 }],
+  "projects": [
+    {
+      "path": "pubspec.yaml",
+      "ecosystem": "Dart",
+      "name": "nether",
+      "description": "A sample command-line application."
+    }
+  ],
   "directories": [
-    { "path": ".", "files": 6, "loc": 550, "role": "configuration" },
+    { "path": ".", "files": 7, "loc": 589, "role": "root" },
     { "path": "bin", "files": 1, "loc": 8, "role": "source" },
-    { "path": "lib", "files": 8, "loc": 804, "role": "source" },
+    { "path": "lib", "files": 9, "loc": 1193, "role": "source" },
     { "path": "test", "files": 1, "loc": 0, "role": "test" }
   ],
   "tests": { "dirs": ["test"], "files": 1 },
-  "docs": { "readme": "README.md", "files": ["CHANGELOG.md", "README.md"] }
+  "docs": {
+    "readme": "README.md",
+    "files": ["AGENTS.md", "CHANGELOG.md", "README.md"]
+  }
 }

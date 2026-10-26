@@ -160,10 +160,10 @@ const _alwaysSkipped = {'.git', '.nether', 'node_modules'};
 const _sniffBytes = 8192;
 
 //////////////////////
-class RepoScanner {
+class Metadata {
   final String rootPath;
 
-  RepoScanner(this.rootPath);
+  Metadata(this.rootPath);
 
   late final String _root = p.normalize(p.absolute(rootPath));
 

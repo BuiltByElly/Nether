@@ -34,3 +34,19 @@ extension FileMetadataToMap
     };
   }
 }
+
+class ManifestDetails {
+  final String? name;
+  final String? description;
+  final Map<String, String> scripts;
+  final List<String> entryPoints;
+
+  const ManifestDetails({
+    this.name,
+    this.description,
+    this.scripts = const {},
+    this.entryPoints = const [],
+  });
+
+  static const empty = ManifestDetails();
+}

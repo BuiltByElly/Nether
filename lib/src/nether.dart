@@ -25,6 +25,7 @@ class Nether {
     return metadata;
   }
 
+  ///Returns the overview of the current project
   Future<Map<String, dynamic>> overview() async {
     final repoMetadata = await metadata();
     final manifests = await _manifestReader.read(
@@ -38,7 +39,7 @@ class Nether {
       rootName: rootName,
       manifests: manifests,
     );
-    _manager.writeOverview(result);
-    return result;
+    _manager.writeOverview(result.toMap());
+    return result.toMap();
   }
 }

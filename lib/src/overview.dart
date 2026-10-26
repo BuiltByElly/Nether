@@ -2,7 +2,7 @@ import 'package:nether/src/types.dart';
 
 import 'manifest.dart';
 
-Map<String, dynamic> buildOverview(
+RepoOverview buildOverview(
   Map<String, FileMetadata> metadata, {
   required String rootName,
   Map<String, ManifestDetails> manifests = const {},
@@ -108,21 +108,47 @@ Map<String, dynamic> buildOverview(
   projects.sort((a, b) => (a['path'] as String).compareTo(b['path'] as String));
   docFiles.sort();
 
-  return {
-    'generatedAt': DateTime.now().toUtc().toIso8601String(),
-    'root': rootName,
-    'stats': {
-      'files': metadata.length,
-      'loc': totalLoc,
-      'byClass': {
+  return (
+    generatedAt: DateTime.now().toUtc().toIso8601String(),
+    root: rootName,
+    stats: (
+      files: metadata.length,
+      loc: totalLoc,
+      byClass: {
         for (final c in classFiles.keys)
-          c: {'files': classFiles[c], 'loc': classLoc[c]},
+          c: (files: classFiles[c]!, loc: classLoc[c] ?? 0),
       },
-    },
-    'languages': languages,
-    'projects': projects,
-    'directories': directories,
-    'tests': {'dirs': testDirs.toList()..sort(), 'files': testFiles},
-    'docs': {'readme': readme, 'files': docFiles},
-  };
+    ),
+    languages: [
+      for (final l in languages)
+        (
+          name: l['name'] as String,
+          files: l['files'] as int,
+          loc: l['loc'] as int,
+          share: (l['share'] as num).toDouble(),
+        ),
+    ],
+    projects: [
+      for (final p in projects)
+        (
+          path: p['path'] as String,
+          ecosystem: p['ecosystem'] as String,
+          name: p['name'] as String?,
+          description: p['description'] as String?,
+          scripts: (p['scripts'] as Map?)?.cast<String, String>(),
+          entryPoints: (p['entryPoints'] as List?)?.cast<String>(),
+        ),
+    ],
+    directories: [
+      for (final d in directories)
+        (
+          path: d['path'] as String,
+          files: d['files'] as int,
+          loc: d['loc'] as int,
+          role: d['role'] as String,
+        ),
+    ],
+    tests: (dirs: testDirs.toList()..sort(), files: testFiles),
+    docs: (readme: readme, files: docFiles),
+  );
 }

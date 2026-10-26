@@ -1,9 +1,9 @@
 import 'package:path/path.dart' as p;
 
 import 'manager/nether_manager.dart';
-import 'manifest_reader.dart';
-import 'overview.dart';
-import 'metadata.dart';
+import './orient/manifest_reader.dart';
+import './orient/overview.dart';
+import './orient/metadata.dart';
 import 'types.dart';
 
 class Nether {

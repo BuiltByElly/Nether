@@ -4,7 +4,7 @@ import 'package:toml/toml.dart';
 import 'package:xml/xml.dart';
 import 'package:yaml/yaml.dart';
 
-import 'types.dart';
+import 'package:nether/src/types.dart';
 
 /// Exact filenames that mark a project manifest -> ecosystem.
 const _manifestFiles = <String, String>{

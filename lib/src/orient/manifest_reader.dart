@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 import 'manifest.dart';
-import 'types.dart';
+
+import 'package:nether/src/types.dart';
 
 class ManifestReader {
   final String rootPath;
